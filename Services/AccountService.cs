@@ -74,6 +74,14 @@ public class AccountService
 
         if (existingAccount is not null)
         {
+            if (account.ClientId.HasValue)
+            {
+                var client = await clientService.GetById(account.ClientId.Value);
+
+                if (client is null)
+                    throw new Exception($"El cliente con ID {account.ClientId.Value} no existe.");
+            }
+
             existingAccount.AccountType = account.AccountType;
             existingAccount.ClientId = account.ClientId;
             existingAccount.Balance = account.Balance;
@@ -81,6 +89,7 @@ public class AccountService
             await _context.SaveChangesAsync();
         }
     }
+
 
     public async Task Delete(int id)
     {

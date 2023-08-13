@@ -55,7 +55,7 @@ public class AccountController : ControllerBase
         var newAccount = await accountService.Create(account);
 
         if (newAccount == null)
-            return BadRequest(new { message = "Error al crear la cuenta." });
+            return BadRequest(new { message = validationResult });
 
         return CreatedAtAction(nameof(GetById), new { id = newAccount.Id }, newAccount);
     }
