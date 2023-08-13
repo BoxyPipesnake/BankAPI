@@ -7,10 +7,12 @@ namespace BankAPI.Services;
 public class AccountService
 {
     private readonly BankContext _context;
+    private readonly ClientService clientService;
 
-    public AccountService(BankContext context)
+    public AccountService(BankContext context, ClientService clientService)
     {
         _context = context;
+        this.clientService = clientService;
     }
 
     public async Task<IEnumerable<AccountDtoOut>> GetAll()
@@ -38,7 +40,7 @@ public class AccountService
                 Balance = a.Balance,
                 RegDate = a.RegDate
             }).SingleOrDefaultAsync();
-    }    
+    }
 
     public async Task<Account?> GetById(int id)
     {
@@ -47,12 +49,17 @@ public class AccountService
 
     public async Task<Account> Create(AccountDtoIn newAccountDTO)
     {
+        var clientID = newAccountDTO.ClientId.GetValueOrDefault();
+        var client = await clientService.GetById(clientID);
+
+        if (client is null)
+            return null; // Cliente no existe
 
         var newAccount = new Account();
 
         newAccount.AccountType = newAccountDTO.AccountType;
-        newAccount.ClientId = newAccountDTO.ClientId;
         newAccount.Balance = newAccountDTO.Balance;
+        newAccount.ClientId = clientID;
 
         _context.Accounts.Add(newAccount);
         await _context.SaveChangesAsync();
@@ -60,11 +67,12 @@ public class AccountService
         return newAccount;
     }
 
+
     public async Task Update(AccountDtoIn account)
     {
         var existingAccount = await GetById(account.Id);
 
-        if(existingAccount is not null)
+        if (existingAccount is not null)
         {
             existingAccount.AccountType = account.AccountType;
             existingAccount.ClientId = account.ClientId;

@@ -49,13 +49,15 @@ public class AccountController : ControllerBase
     {
         string validationResult = await ValidateAccount(account);
 
-        if(!validationResult.Equals("Valid"))
-            return BadRequest(new {message = validationResult});
-
+        if (!validationResult.Equals("Valid"))
+            return BadRequest(new { message = validationResult });
 
         var newAccount = await accountService.Create(account);
 
-        return CreatedAtAction(nameof(GetById), new { id = newAccount.Id }, newAccount);  
+        if (newAccount == null)
+            return BadRequest(new { message = "Error al crear la cuenta." });
+
+        return CreatedAtAction(nameof(GetById), new { id = newAccount.Id }, newAccount);
     }
 
     [Authorize(Policy = "SuperAdmin")]
@@ -117,19 +119,17 @@ public class AccountController : ControllerBase
 
         var accountType = await accountTypeService.GetById(account.AccountType);
 
-        if(accountType is null)
-            result = $"El tipo de cuenta de {account.AccountType} no existe";
+        if (accountType is null)
+        return $"El tipo de cuenta {account.AccountType} no existe";
 
         var clientID = account.ClientId.GetValueOrDefault();
-
         var client = await clientService.GetById(clientID);
 
-        if(client is null)
-            result = $"El cliente {clientID}";
+        if (client is null)
+            return $"El cliente {clientID} no existe";
 
         return result;
     }
-
 
 
 }
