@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using BankAPI.Services;
 using BankAPI.Data.BankModels;
 using TestBankAPI.Data.DTOs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BankAPI.Controllers;
 
+[Authorize] 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class AccountController : ControllerBase
 {
     private readonly AccountService accountService;
@@ -23,7 +25,7 @@ public class AccountController : ControllerBase
         this.clientService = clientService;
     }
 
-    [HttpGet]
+    [HttpGet("getall")]
     public async Task<IEnumerable<AccountDtoOut>> Get()
     {
         return await accountService.GetAll();
@@ -41,7 +43,8 @@ public class AccountController : ControllerBase
     }   
 
 
-    [HttpPost]
+    [Authorize(Policy = "SuperAdmin")]
+    [HttpPost("create")]
     public async Task<IActionResult> Create(AccountDtoIn account)
     {
         string validationResult = await ValidateAccount(account);
@@ -55,7 +58,8 @@ public class AccountController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = newAccount.Id }, newAccount);  
     }
 
-    [HttpPut("{id}")]
+    [Authorize(Policy = "SuperAdmin")]
+    [HttpPut("update/{id}")]
     public async Task<IActionResult> Update(int id, AccountDtoIn account)
     {
         if(id != account.Id)
@@ -82,7 +86,8 @@ public class AccountController : ControllerBase
 
     }
 
-    [HttpDelete("{id}")]
+    [Authorize(Policy = "SuperAdmin")]
+    [HttpDelete("delete/{id}")]
     public async Task<IActionResult> Delete(int id)
     {
          var accountToDelete = await accountService.GetById(id);
